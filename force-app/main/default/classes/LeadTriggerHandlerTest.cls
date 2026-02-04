@@ -141,7 +141,9 @@ public with sharing class LeadTriggerHandlerTest {
             insert acc;
             Contact con = new Contact(FirstName = 'Test', LastName = 'User4', Email = 'tab@example.com', AccountId = acc.Id);
             insert con;
+            Test.startTest();
             LeadTriggerHandler.handleLeadAutoConvert(lds);
+            Test.stopTest();
             //Requery the leads after the main class is called to see the updated fields
             List<Lead> updatedLeads = [SELECT Id, Email, IsConverted, ConvertedContactId FROM Lead WHERE Id IN :lds];
             for(Lead ld: updatedLeads){
@@ -166,7 +168,9 @@ public with sharing class LeadTriggerHandlerTest {
             insert acc;
             Contact con = new Contact(FirstName = 'Test', LastName = 'User4', Email = 'abc@example.com', AccountId = acc.Id);
             insert con;
+            Test.startTest();
             LeadTriggerHandler.handleLeadAutoConvert(lds);
+            Test.stopTest();
             List<Lead> updatedLeads = [SELECT Id, Email, IsConverted, ConvertedContactId FROM Lead WHERE Id IN :lds];
             for(Lead ld: updatedLeads){
                     Assert.areEqual(false, ld.IsConverted, 'No contact found, leave the lead unconverted');
@@ -186,7 +190,9 @@ public with sharing class LeadTriggerHandlerTest {
             insert con1;
             Contact con2 = new Contact(FirstName = 'Test', LastName = 'User2', Email = 'pqr@example.com', AccountId = acc.Id);
             insert con2;
+            Test.startTest();
             LeadTriggerHandler.handleLeadAutoConvert(lds);
+            Test.stopTest();
             List<Lead> updatedLeads = [SELECT Id, Email, IsConverted, ConvertedContactId FROM Lead WHERE Id IN :lds];
             for(Lead ld: updatedLeads){
                 Assert.areEqual(false, ld.IsConverted, 'Multiple contacts found, leave the lead unconverted');
@@ -212,7 +218,9 @@ public with sharing class LeadTriggerHandlerTest {
                 }
             }
             List<Lead> leadsList = [SELECT Id, Email, IsConverted, ConvertedContactId FROM Lead WHERE Id IN :lds];
+            Test.startTest();
             LeadTriggerHandler.handleLeadAutoConvert(leadsList);
+            Test.stopTest();
             for(Lead ld:leadsList){
                 if(ld.email == con1.email && ld.ConvertedContactId == con1.Id){
                     Assert.areEqual(true, ld.IsConverted, 'Lead is already converted, leave the lead');
