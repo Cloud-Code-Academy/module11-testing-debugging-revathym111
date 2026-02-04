@@ -32,18 +32,21 @@ public with sharing class LeadTriggerHandler {
 	 */
 	public static void handleTitleNormalization(List<Lead> leadsToNormalize) {
 		for (Lead ld : leadsToNormalize) {
-			if (ld.title == 'vp' || ld.title.contains('v.p.') || ld.title.contains('vice president')) {
-				ld.Title = 'Vice President';
-			} else if (
-				ld.title.contains('mgr') ||
-				ld.title.contains('manage') ||
-				ld.title.contains('head of department')
-			) {
-				ld.Title = 'Manager';
-			} else if (ld.title.contains('exec') || ld.title == 'chief' || ld.title.contains('head')) {
-				ld.Title = 'Executive';
-			} else if (ld.title.contains('assist') || ld.title.contains('deputy') || ld.title == 'jr') {
-				ld.Title = 'Assistant';
+			if(String.isNotBlank(ld.Title)){
+				String t = ld.Title.toLowerCase();
+				if (t.contains('vp') || t.contains('v.p.') || t.contains('vice president')) {
+					ld.Title = 'Vice President';
+				} else if (
+					t.contains('mgr') ||
+					t.contains('manage') ||
+					t.contains('head of department')
+				) {
+					ld.Title = 'Manager';
+				} else if (t.contains('exec') || t.contains('chief') || t.contains('head')) {
+					ld.Title = 'Executive';
+				} else if (t.contains('assist') || t.contains('deputy') || t.contains('jr')) {
+					ld.Title = 'Assistant';
+				}
 			}
 		}
 	}
@@ -65,18 +68,19 @@ public with sharing class LeadTriggerHandler {
 
 			// Check and add points based on the specified conditions
 			if (ld.LeadSource == 'Website' && ld.Email != null) {
-				score = 3;
+				score += 3;
+				System.debug(score);
 			}
 
 			if (ld.Phone != null) {
-				score = 5;
+				score += 5;
 			}
 
 			if (ld.Industry == 'Technology') {
-				score = 10;
+				score += 10;
 			}
 
-			ld.Lead_Score__c = score; // Set the computed score back to the lead
+			ld.Lead_Score__c = Math.min(18, score); // Set the computed score back to the lead
 		}
 	}
 
@@ -127,7 +131,10 @@ public with sharing class LeadTriggerHandler {
 		LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = TRUE LIMIT 1];
 		for (Id leadId : leadToEmailMap.keySet()) {
             String leadEmail = leadToEmailMap.get(leadId);
-			if (emailToContactMap.containsKey(leadEmail)) {
+			//Query the lead record to check if it is already converted
+			Lead ld = [SELECT Id, IsConverted FROM Lead WHERE Id = :leadId LIMIT 1];
+
+			if (!ld.IsConverted && emailToContactMap.containsKey(leadEmail)) {
 				Database.LeadConvert lc = new Database.LeadConvert();
 				lc.setLeadId(leadId);
 				lc.setContactId(emailToContactMap.get(leadEmail).Id); // Use existing Contact Id
